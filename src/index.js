@@ -26,14 +26,17 @@ const app = express();
 
 app.use(helmet());
 app.use(compression());
-const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  ...(process.env.PRODUCTION_URL ? [process.env.PRODUCTION_URL] : []),
-];
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) cb(null, true);
-    else cb(new Error('Not allowed by CORS'));
+    if (!origin) return cb(null, true);
+    const allowed = [
+      process.env.CLIENT_URL,
+      process.env.PRODUCTION_URL,
+      'http://localhost:5173',
+      'http://localhost:4173',
+    ].filter(Boolean);
+    const ok = allowed.includes(origin) || /\.onrender\.com$/.test(origin);
+    cb(null, ok);
   },
   credentials: true,
 }));
